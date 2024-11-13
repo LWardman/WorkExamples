@@ -4,23 +4,23 @@ using UnityEngine.Tilemaps;
 
 public class WalkerGenerator : MonoBehaviour
 {
-    public enum Grid{EMPTY, FLOOR, START, BOSS, CHALLENGE, SHOP, CAMP}
+    private enum Grid{Empty, Floor, Start, Boss, Challenge, Shop, Camp}
 
     //Variables
-    public Grid[,] gridHandler;
-    public List<WalkerObject> Walkers;
+    private Grid[,] gridHandler;
+    private List<WalkerObject> walkers;
     public Tilemap tileMap;
-    public Tile Floor;
-    public Tile StartRoom;
-    public Tile Boss;
-    public Tile Challenge;
-    public Tile Shop;
-    public Tile Camp;
-    public int MapWidth = 12;
-    public int MapHeight = 12;
-    public int MaximumWalkers = 3;
-    public int TileCount = 0;
-    public float FillPercentage = 0.25f;
+    public Tile floor;
+    public Tile startRoom;
+    public Tile boss;
+    public Tile challenge;
+    public Tile shop;
+    public Tile camp;
+    public int mapWidth = 12;
+    public int mapHeight = 12;
+    public int maximumWalkers = 3;
+    public int tileCount;
+    public float fillPercentage = 0.25f;
 
     /// <summary>
     /// Called when the level starts
@@ -37,11 +37,11 @@ public class WalkerGenerator : MonoBehaviour
     {
         InitializeGrid();
         CreateFloors();
-        CreateSpecialRoom(Boss, Grid.BOSS, true);
-        CreateSpecialRoom(Shop, Grid.SHOP, true);
-        CreateSpecialRoom(Challenge, Grid.CHALLENGE, true);
-        CreateSpecialRoom(Challenge, Grid.CHALLENGE, true);
-        CreateSpecialRoom(Camp, Grid.CAMP, false);
+        CreateSpecialRoom(boss, Grid.Boss, true);
+        CreateSpecialRoom(shop, Grid.Shop, true);
+        CreateSpecialRoom(challenge, Grid.Challenge, true);
+        CreateSpecialRoom(challenge, Grid.Challenge, true);
+        CreateSpecialRoom(camp, Grid.Camp, false);
     }
 
     /// <summary>
@@ -49,27 +49,27 @@ public class WalkerGenerator : MonoBehaviour
     /// </summary>
     void InitializeGrid()
     {
-        gridHandler = new Grid[MapWidth, MapHeight];
+        gridHandler = new Grid[mapWidth, mapHeight];
 
         for (int x = 0; x < gridHandler.GetLength(0); x++)
         {
             for (int y = 0; y < gridHandler.GetLength(1); y++)  // Set all tiles to be empty in the grid
             {
-                gridHandler[x, y] = Grid.EMPTY;
+                gridHandler[x, y] = Grid.Empty;
             }
         }
 
-        Walkers = new List<WalkerObject>();                     // Store walkers here
+        walkers = new List<WalkerObject>();                     // Store walkers here
 
-        Vector3Int TileCenter = new Vector3Int(gridHandler.GetLength(0) / 2, gridHandler.GetLength(1) / 2, 0);
+        Vector3Int tileCenter = new Vector3Int(gridHandler.GetLength(0) / 2, gridHandler.GetLength(1) / 2, 0);
 
         // Initialise a walker in the center.
-        WalkerObject curWalker = new WalkerObject(new Vector2(TileCenter.x, TileCenter.y), WalkerObject.ChooseDirection());
-        gridHandler[TileCenter.x, TileCenter.y] = Grid.START;
-        tileMap.SetTile(TileCenter, StartRoom);
-        Walkers.Add(curWalker);
+        WalkerObject curWalker = new WalkerObject(new Vector2(tileCenter.x, tileCenter.y), WalkerObject.ChooseDirection());
+        gridHandler[tileCenter.x, tileCenter.y] = Grid.Start;
+        tileMap.SetTile(tileCenter, startRoom);
+        walkers.Add(curWalker);
 
-        TileCount++;
+        tileCount++;
     }
 
     /// <summary>
@@ -77,17 +77,17 @@ public class WalkerGenerator : MonoBehaviour
     /// </summary>
     void CreateFloors()
     {
-        while ((float)TileCount / (float)gridHandler.Length < FillPercentage) // Until X tiles are filled
+        while (tileCount / (float)gridHandler.Length < fillPercentage) // Until X tiles are filled
         {
-            foreach (WalkerObject curWalker in Walkers) // Update each walker's tile
+            foreach (WalkerObject curWalker in walkers) // Update each walker's tile
             {
                 Vector3Int curPos = new Vector3Int((int)curWalker.Position.x, (int)curWalker.Position.y, 0);
 
-                if (gridHandler[curPos.x, curPos.y] != Grid.EMPTY) continue;
+                if (gridHandler[curPos.x, curPos.y] != Grid.Empty) continue;
                 
-                tileMap.SetTile(curPos, Floor);
-                TileCount++;
-                gridHandler[curPos.x, curPos.y] = Grid.FLOOR;
+                tileMap.SetTile(curPos, floor);
+                tileCount++;
+                gridHandler[curPos.x, curPos.y] = Grid.Floor;
             }
 
             //Walker Methods
@@ -103,11 +103,11 @@ public class WalkerGenerator : MonoBehaviour
     /// </summary>
     void ChanceToRemove()
     {
-        for (int i = 0; i < Walkers.Count; i++)
+        for (int i = 0; i < walkers.Count; i++)
         {
-            if (UnityEngine.Random.value < Walkers[i].ChanceToRemove && Walkers.Count > 1)
+            if (Random.value < walkers[i].ChanceToRemove && walkers.Count > 1)
             {
-                Walkers.RemoveAt(i);
+                walkers.RemoveAt(i);
                 break;
             }
         }
@@ -118,11 +118,11 @@ public class WalkerGenerator : MonoBehaviour
     /// </summary>
     void ChanceToRedirect()
     {
-        for (int i = 0; i < Walkers.Count; i++)
+        foreach (WalkerObject walker in walkers)
         {
-            if (Random.value < Walkers[i].ChanceToChangeDirection)
+            if (Random.value < walker.ChanceToChangeDirection)
             {
-                Walkers[i].Direction = WalkerObject.ChooseDirection();
+                walker.Direction = WalkerObject.ChooseDirection();
             }
         }
     }
@@ -132,14 +132,14 @@ public class WalkerGenerator : MonoBehaviour
     /// </summary>
     void ChanceToCreate()
     {
-        for (int i = 0; i < Walkers.Count; i++)
+        for (int i = 0; i < walkers.Count; i++)
         {
-            if (Random.value < Walkers[i].ChanceToCreate && Walkers.Count < MaximumWalkers)
+            if (Random.value < walkers[i].ChanceToCreate && walkers.Count < maximumWalkers)
             {
-                Vector2Int TileCenter = new Vector2Int(gridHandler.GetLength(0) / 2, gridHandler.GetLength(1) / 2);
+                Vector2Int tileCenter = new Vector2Int(gridHandler.GetLength(0) / 2, gridHandler.GetLength(1) / 2);
 
-                WalkerObject newWalker = new WalkerObject(TileCenter, WalkerObject.ChooseDirection());
-                Walkers.Add(newWalker);
+                WalkerObject newWalker = new WalkerObject(tileCenter, WalkerObject.ChooseDirection());
+                walkers.Add(newWalker);
             }
         }
     }
@@ -150,10 +150,10 @@ public class WalkerGenerator : MonoBehaviour
     /// </summary>
     void UpdatePosition()
     {
-        for (int i = 0; i < Walkers.Count; i++)
+        foreach (WalkerObject walker in walkers)
         {
-            Walkers[i].Position += Walkers[i].Direction;
-            Walkers[i].ClampWithinGrid(gridHandler.GetLength(0), gridHandler.GetLength(1));
+            walker.Position += walker.Direction;
+            walker.ClampWithinGrid(gridHandler.GetLength(0), gridHandler.GetLength(1));
         }
     }
 
@@ -165,9 +165,9 @@ public class WalkerGenerator : MonoBehaviour
     /// <param>y</param> 
     /// The y coordinate of the currently inspected room. <br/>
     /// </summary>
-    int GetNumberOfConnectingFloorRooms(Grid[,] gridHandler, int x, int y)
+    int GetNumberOfConnectingFloorRooms(int x, int y)
     {
-        Vector2[] coords = new Vector2[4]       // array of coords of adjacent room slots
+        Vector2[] coords = new Vector2[]       // array of coords of adjacent room slots
         {
             new Vector2(x, y) + Vector2.right,
             new Vector2(x, y) + Vector2.left,
@@ -177,9 +177,9 @@ public class WalkerGenerator : MonoBehaviour
 
         int numOfConnectingRooms = 0;           // int tracker to be returned
 
-        foreach (Vector2 coord in coords)       // loop through each adjacent room and see if its a floor
+        foreach (Vector2 coord in coords)       // loop through each adjacent room and see if it's a floor
         {
-            if (gridHandler[(int)coord.x, (int)coord.y] == Grid.EMPTY) continue;
+            if (gridHandler[(int)coord.x, (int)coord.y] == Grid.Empty) continue;
             
             numOfConnectingRooms++;
         }
@@ -191,7 +191,7 @@ public class WalkerGenerator : MonoBehaviour
     /// Finds a room with a minimum amount of rooms adjacent to it. <br/><br/>
     /// <param>gridHandler</param> Is locally available in this class, just use 'gridHandler' as the parameter. <br/>
     /// </summary>
-    Vector2 GetRoomWithMinimumConnections(Grid[,] gridHandler)
+    Vector2 GetRoomWithMinimumConnections()
     {
         for (int numConnectingRooms = 1; numConnectingRooms < 4; numConnectingRooms++)
         {
@@ -199,9 +199,9 @@ public class WalkerGenerator : MonoBehaviour
             {
                 for (int y = 0; y < gridHandler.GetLength(1) - 1; y++)  
                 {
-                    if (gridHandler[x, y] != Grid.FLOOR) continue;      // Counting any form of room as a floor.
+                    if (gridHandler[x, y] != Grid.Floor) continue;      // Counting any form of room as a floor.
 
-                    if (GetNumberOfConnectingFloorRooms(gridHandler, x, y) > numConnectingRooms) continue;
+                    if (GetNumberOfConnectingFloorRooms(x, y) > numConnectingRooms) continue;
                     
                     return new Vector2(x, y);
                 }
@@ -217,7 +217,7 @@ public class WalkerGenerator : MonoBehaviour
     /// Finds a room with a maximum amount of rooms adjacent to it. <br/><br/>
     /// <param>gridHandler</param> Is locally available in this class, just use 'gridHandler' as the parameter. <br/>
     /// </summary>
-    Vector2 GetRoomWithMaximumConnections(Grid[,] gridHandler)
+    Vector2 GetRoomWithMaximumConnections()
     {
         for (int numConnectingRooms = 4; numConnectingRooms > 0; numConnectingRooms--)
         {
@@ -225,9 +225,9 @@ public class WalkerGenerator : MonoBehaviour
             {
                 for (int y = 0; y < gridHandler.GetLength(1) - 1; y++)  
                 {
-                    if (gridHandler[x, y] != Grid.FLOOR) continue;      // Counting any form of room as a floor.
+                    if (gridHandler[x, y] != Grid.Floor) continue;      // Counting any form of room as a floor.
 
-                    if (GetNumberOfConnectingFloorRooms(gridHandler, x, y) < numConnectingRooms) continue;
+                    if (GetNumberOfConnectingFloorRooms(x, y) < numConnectingRooms) continue;
                     
                     return new Vector2(x, y);
                 }
@@ -244,23 +244,14 @@ public class WalkerGenerator : MonoBehaviour
     /// <param>RoomTile</param> The tile the room should show up as on the map. <br/>
     /// <param>RoomEnum</param> The corresponding room name in the Grid enum. <br/>
     /// </summary>
-    void CreateSpecialRoom(Tile RoomTile, Grid RoomEnum, bool minRoomsRequired)
+    void CreateSpecialRoom(Tile roomTile, Grid roomEnum, bool minRoomsRequired)
     {
-        Vector2 validCoord;
-
-        if (minRoomsRequired)
-        {
-            validCoord = GetRoomWithMinimumConnections(gridHandler);
-        }
-        else
-        {
-            validCoord = GetRoomWithMaximumConnections(gridHandler);
-        }
+        Vector2 validCoord = minRoomsRequired ? GetRoomWithMinimumConnections() : GetRoomWithMaximumConnections();
         
         int x = (int)validCoord.x;
         int y = (int)validCoord.y;
 
-        gridHandler[x, y] = RoomEnum;
-        tileMap.SetTile(new Vector3Int(x, y), RoomTile);
+        gridHandler[x, y] = roomEnum;
+        tileMap.SetTile(new Vector3Int(x, y), roomTile);
     }
 }
