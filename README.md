@@ -28,6 +28,14 @@ Base class for the AI controller for enemies, relatively short file which utilis
 
 Initialises and begins running a behaviour tree.
 
+## vec3.h
+
+A 3D vector class used in the ray tracing project. Features operator overloading and common vector utilities, as well as utilities like generating a random vector, reflecting vectors from each other and refraction. 
+
+## ray.h
+
+A class which simulates the position of a ray of light, made extremely simple thanks to the above vector class. 
+
 # Python
 ## arduino_connection_centre.py
 
